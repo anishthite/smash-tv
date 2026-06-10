@@ -1,8 +1,21 @@
 # SMASH TV
 
+**▶ Live: <https://anish.thite.site/smash-tv/>**
+
 A CRT-style channel that plays every video from
 [`archive.org/details/@anish_thite`](https://archive.org/details/@anish_thite)
 back-to-back. No backend, just three files.
+
+Deep links work: append `?v=<archive-identifier>&t=<seconds>` to share a
+specific timestamp, e.g.
+`https://anish.thite.site/smash-tv/?v=smash-gameplay-20260515-001950-20260608-062152&t=42`
+(the in-app **SHARE** button copies that URL for you).
+
+## Deployment
+
+Hosted on GitHub Pages from the `main` branch of
+[`anishthite/smash-tv`](https://github.com/anishthite/smash-tv).
+Every push redeploys; build takes ~30s.
 
 ## Run
 
