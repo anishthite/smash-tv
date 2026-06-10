@@ -1,0 +1,272 @@
+/* SMASH TV — Star K.O. minimal palette */
+:root {
+  --white: #fff;
+  --red:   #e63946;       /* hot Mario red */
+  --red-h: #ff4d5b;       /* hover */
+  --ink:   #0d0d0d;
+  --shadow-red: 3px 3px 0 var(--red);
+  --glow-red:   0 0 14px rgba(230,57,70,0.65);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  height: 100%;
+  background: var(--ink);
+  color: var(--white);
+  font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+  overflow: hidden;
+}
+
+#tv { position: fixed; inset: 0; background: #000; overflow: hidden; }
+#player {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+/* Scanlines (kept subtle) */
+.scanlines {
+  position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0,0,0,0) 0px,
+    rgba(0,0,0,0) 2px,
+    rgba(0,0,0,0.18) 3px,
+    rgba(0,0,0,0.18) 3px
+  );
+  mix-blend-mode: multiply;
+  z-index: 10;
+}
+
+/* Vignette */
+.vignette {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0) 60%, rgba(0,0,0,0.55) 100%);
+  z-index: 11;
+}
+
+/* Static flash between channels */
+.static {
+  position: absolute; inset: 0; pointer-events: none; z-index: 20;
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.85'/></svg>");
+  background-size: 300px 300px;
+  opacity: 0.9;
+  animation: noise 0.08s steps(2) infinite;
+}
+.static.hidden { display: none; }
+@keyframes noise {
+  0%   { background-position: 0 0; }
+  100% { background-position: 100px -50px; }
+}
+
+/* HUD */
+.hud {
+  position: absolute;
+  top: 28px; right: 36px;
+  z-index: 30;
+  text-align: right;
+  pointer-events: none;
+  transition: opacity 0.4s;
+}
+.hud.fade { opacity: 0; }
+.channel {
+  font-family: 'Anton', 'Barlow Condensed', sans-serif;
+  font-size: 56px;
+  font-weight: 400;
+  letter-spacing: 1px;
+  color: var(--white);
+  text-shadow: var(--shadow-red);
+  transform: skewX(-8deg);
+  transform-origin: right center;
+  line-height: 0.95;
+}
+.title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 18px;
+  letter-spacing: 1px;
+  margin-top: 6px;
+  color: var(--white);
+  text-shadow: 1px 1px 0 var(--red);
+  text-transform: lowercase;
+  max-width: 60vw;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-left: auto;
+}
+.share {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 6px 14px 5px;
+  font-family: 'Anton', 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  letter-spacing: 4px;
+  color: var(--white);
+  background: transparent;
+  border: 2px solid var(--red);
+  cursor: pointer;
+  pointer-events: auto;
+  transform: skewX(-8deg);
+  transition: background 0.12s, color 0.12s, transform 0.06s;
+  text-shadow: 1px 1px 0 var(--red);
+}
+.share > span { display: inline-block; transform: skewX(8deg); }  /* unskew label */
+.share:hover { background: var(--red); color: var(--white); text-shadow: none; }
+.share:active { transform: skewX(-8deg) translateY(1px); }
+
+/* Nav buttons (PREV / NEXT) — share the SHARE button language */
+.navbtn {
+  display: inline-block;
+  padding: 8px 16px 7px;
+  font-family: 'Anton', 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  letter-spacing: 4px;
+  color: var(--white);
+  background: transparent;
+  border: 2px solid var(--red);
+  cursor: pointer;
+  pointer-events: auto;
+  transform: skewX(-8deg);
+  transition: background 0.12s, color 0.12s, transform 0.06s, box-shadow 0.12s;
+  text-shadow: 2px 2px 0 var(--red);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.navbtn > span { display: inline-block; transform: skewX(8deg); }   /* unskew label */
+.navbtn:hover {
+  background: var(--red);
+  color: var(--white);
+  text-shadow: none;
+  box-shadow: var(--glow-red);
+}
+.navbtn:active { transform: skewX(-8deg) translateY(1px); }
+
+/* Scrub strip — minimal, floats clean, no backdrop gradient */
+.scrub {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: 18px 36px 22px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  color: var(--white);
+  transition: opacity 0.3s;
+  opacity: 0.7;
+}
+.scrub:hover { opacity: 1; }
+.scrub.active { opacity: 1; }
+.scrub.fade { opacity: 0.28; }
+
+.tc {
+  font-family: 'Anton', 'Barlow Condensed', sans-serif;
+  font-size: 18px;
+  letter-spacing: 2px;
+  min-width: 60px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--white);
+  text-shadow: 2px 2px 0 var(--red);
+  transform: skewX(-8deg);
+}
+
+.bar {
+  position: relative;
+  flex: 1;
+  height: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+/* Base track — thin white line full width */
+.bar::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: rgba(255,255,255,0.55);
+  transition: height 0.15s;
+}
+.scrub:hover .bar::before { height: 3px; background: rgba(255,255,255,0.85); }
+
+/* Buffered — faint white overlay */
+.buffered {
+  position: absolute;
+  left: 0; height: 2px;
+  background: rgba(255,255,255,0.25);
+  pointer-events: none;
+  width: 0%;
+  transition: height 0.15s;
+}
+.scrub:hover .buffered { height: 3px; }
+
+/* Progress — red fill before thumb */
+.progress {
+  position: absolute;
+  left: 0; height: 4px;
+  background: var(--red);
+  box-shadow: var(--glow-red);
+  pointer-events: none;
+  width: 0%;
+  transition: height 0.15s;
+}
+.scrub:hover .progress { height: 5px; }
+
+/* Star thumb (5-point) */
+.thumb {
+  position: absolute;
+  width: 24px; height: 24px;
+  background: var(--white);
+  box-shadow: 0 0 12px rgba(255,255,255,0.6), 0 0 18px var(--red);
+  clip-path: polygon(
+    50% 0%,
+    61% 35%,
+    98% 35%,
+    68% 57%,
+    79% 91%,
+    50% 70%,
+    21% 91%,
+    32% 57%,
+    2% 35%,
+    39% 35%
+  );
+  transform: translateX(-50%);
+  left: 0%;
+  pointer-events: none;
+  transition: width 0.15s, height 0.15s;
+  filter: drop-shadow(2px 2px 0 var(--red));
+}
+.scrub:hover .thumb { width: 32px; height: 32px; }
+
+/* Boot overlay */
+.boot {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 40;
+  background: radial-gradient(ellipse at center, #1a0708 0%, #000 70%);
+  gap: 22px;
+  color: var(--white);
+  transition: opacity 0.6s;
+}
+.boot.hidden { opacity: 0; pointer-events: none; }
+.boot .big {
+  font-family: 'Anton', 'Barlow Condensed', sans-serif;
+  font-size: 96px;
+  letter-spacing: 6px;
+  text-shadow: 6px 6px 0 var(--red);
+  transform: skewX(-8deg);
+}
+.boot .small {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: 3px;
+  text-transform: lowercase;
+  opacity: 0.85;
+  text-shadow: 1px 1px 0 var(--red);
+}

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SMASH TV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:ital,wght@0,400;0,700;1,400;1,700;1,900&display=swap">
+<link rel="stylesheet" href="styles.css?v=5">
+</head>
+<body>
+  <div id="tv">
+    <video id="player" autoplay muted playsinline></video>
+
+    <!-- CRT effects -->
+    <div class="scanlines"></div>
+    <div class="vignette"></div>
+    <div id="static" class="static hidden"></div>
+
+    <!-- HUD -->
+    <div id="hud" class="hud">
+      <div class="channel">CH <span id="ch">001</span></div>
+      <div class="title" id="title">tuning…</div>
+      <button id="share" class="share" type="button" title="Copy share link (with timestamp)">
+        <span id="sharelabel">SHARE</span>
+      </button>
+    </div>
+
+    <!-- Scrub bar -->
+    <div id="scrub" class="scrub">
+      <button id="prev" class="navbtn" type="button" title="Previous channel (←)">
+        <span>◀◀ PREV</span>
+      </button>
+      <span id="tcur" class="tc">0:00</span>
+      <div id="bar" class="bar">
+        <div id="buffered" class="buffered"></div>
+        <div id="progress" class="progress"></div>
+        <div id="thumb" class="thumb"></div>
+      </div>
+      <span id="tdur" class="tc">0:00</span>
+      <button id="next" class="navbtn" type="button" title="Next channel (→)">
+        <span>NEXT ▶▶</span>
+      </button>
+    </div>
+
+    <div id="bootmsg" class="boot">
+      <div class="big">SMASH TV</div>
+      <div class="small">press any key — ← prev · → next · space pause · m mute · f fullscreen · s shuffle · , . seek±5s</div>
+    </div>
+  </div>
+<script src="app.js?v=5"></script>
+</body>
+</html>
