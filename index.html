@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:ital,wght@0,400;0,700;1,400;1,700;1,900&display=swap">
-<link rel="stylesheet" href="styles.css?v=9">
+<link rel="stylesheet" href="styles.css?v=10">
 <meta name="theme-color" content="#0d0d0d">
 </head>
 <body>
@@ -23,9 +23,14 @@
     <div id="hud" class="hud">
       <div class="channel">CH <span id="ch">001</span></div>
       <div class="title" id="title">tuning…</div>
-      <button id="share" class="share" type="button" title="Copy share link (with timestamp)">
-        <span id="sharelabel">SHARE</span>
-      </button>
+      <div class="hud-buttons">
+        <button id="crt" class="chip" type="button" title="Toggle CRT effect (c)">
+          <span id="crtlabel">CRT ON</span>
+        </button>
+        <button id="share" class="chip" type="button" title="Copy share link (with timestamp)">
+          <span id="sharelabel">SHARE</span>
+        </button>
+      </div>
     </div>
 
     <!-- Scrub bar -->
@@ -47,10 +52,10 @@
 
     <div id="bootmsg" class="boot">
       <div class="big">SMASH TV</div>
-      <div class="small kb">press any key — ← prev · → next · space pause · m mute · f fullscreen · s shuffle · , . seek±5s</div>
+      <div class="small kb">press any key — ← prev · → next · space pause · m mute · f fullscreen · s shuffle · c crt · , . seek±5s</div>
       <div class="small touch">tap to start — swipe ← prev · swipe → next · tap pause · double-tap fullscreen</div>
     </div>
   </div>
-<script src="app.js?v=9"></script>
+<script src="app.js?v=10"></script>
 </body>
 </html>

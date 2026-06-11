@@ -48,6 +48,7 @@ html, body {
   );
   mix-blend-mode: multiply;
   z-index: 10;
+  transition: opacity 0.25s;
 }
 
 /* Vignette */
@@ -55,7 +56,14 @@ html, body {
   position: absolute; inset: 0; pointer-events: none;
   background: radial-gradient(ellipse at center, rgba(0,0,0,0) 60%, rgba(0,0,0,0.55) 100%);
   z-index: 11;
+  transition: opacity 0.25s;
 }
+
+/* CRT kill switch — toggled by JS via #tv.crt-off. Hides scanlines + vignette
+   and suppresses the channel-change static flash entirely. */
+#tv.crt-off .scanlines,
+#tv.crt-off .vignette { opacity: 0; }
+#tv.crt-off .static { display: none; }
 
 /* Static flash between channels */
 .static {
@@ -109,9 +117,19 @@ html, body {
   text-overflow: ellipsis;
   margin-left: auto;
 }
-.share {
-  display: inline-block;
+/* HUD button row — sits below the title, right-aligned. */
+.hud-buttons {
+  display: inline-flex;
+  gap: 8px;
   margin-top: 12px;
+  pointer-events: auto;
+  justify-content: flex-end;
+}
+
+/* Shared chip style for CRT + SHARE. Skewed red-bordered pill matching the
+   PREV/NEXT navbtn language but smaller. */
+.chip {
+  display: inline-block;
   padding: 6px 14px 5px;
   font-family: 'Anton', 'Barlow Condensed', sans-serif;
   font-size: 14px;
@@ -122,12 +140,20 @@ html, body {
   cursor: pointer;
   pointer-events: auto;
   transform: skewX(-8deg);
-  transition: background 0.12s, color 0.12s, transform 0.06s;
+  transition: background 0.12s, color 0.12s, transform 0.06s, opacity 0.12s, border-color 0.12s;
   text-shadow: 1px 1px 0 var(--red);
 }
-.share > span { display: inline-block; transform: skewX(8deg); }  /* unskew label */
-.share:hover { background: var(--red); color: var(--white); text-shadow: none; }
-.share:active { transform: skewX(-8deg) translateY(1px); }
+.chip > span { display: inline-block; transform: skewX(8deg); }  /* unskew label */
+.chip:hover { background: var(--red); color: var(--white); text-shadow: none; }
+.chip:active { transform: skewX(-8deg) translateY(1px); }
+
+/* CRT button “off” state — muted, hollow, signals the effect is disabled. */
+#crt.off {
+  opacity: 0.6;
+  border-color: rgba(230, 57, 70, 0.55);
+  text-shadow: 1px 1px 0 rgba(230, 57, 70, 0.55);
+}
+#crt.off:hover { opacity: 1; }
 
 /* Nav buttons (PREV / NEXT) — share the SHARE button language */
 .navbtn {
@@ -318,9 +344,12 @@ html, body {
     margin-top: 4px;
     max-width: 100%;
   }
-  .share {
+  .hud-buttons {
+    gap: 6px;
     margin-top: 8px;
-    padding: 8px 14px 7px;
+  }
+  .chip {
+    padding: 8px 12px 7px;
     font-size: 13px;
     letter-spacing: 3px;
     min-height: 36px;          /* touch target */

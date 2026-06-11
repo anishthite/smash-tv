@@ -7,8 +7,10 @@ const DL     = (id, name) => `https://archive.org/download/${encodeURIComponent(
 
 const CACHE_KEY = 'smashtv.playlist.v1';
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6; // 6h
+const CRT_KEY = 'smashtv.crt.v1';
 
 const els = {
+  tv:       document.getElementById('tv'),
   video:    document.getElementById('player'),
   ch:       document.getElementById('ch'),
   title:    document.getElementById('title'),
@@ -17,6 +19,8 @@ const els = {
   boot:     document.getElementById('bootmsg'),
   share:    document.getElementById('share'),
   shareLbl: document.getElementById('sharelabel'),
+  crt:      document.getElementById('crt'),
+  crtLbl:   document.getElementById('crtlabel'),
   scrub:    document.getElementById('scrub'),
   prevBtn:  document.getElementById('prev'),
   nextBtn:  document.getElementById('next'),
@@ -249,8 +253,33 @@ function flashShare(msg) {
 /* ---------- effects ---------- */
 
 function flashStatic() {
+  // CSS hides the static layer entirely when CRT is off, but skip the
+  // setTimeout dance too — nothing to reveal.
+  if (els.tv.classList.contains('crt-off')) return;
   els.static.classList.remove('hidden');
   setTimeout(() => els.static.classList.add('hidden'), 350);
+}
+
+/* ---------- CRT toggle ----------
+   Single user-facing setting so far. Persisted in localStorage; restored on
+   boot. The actual visual changes (hide scanlines/vignette, suppress static
+   flash) are handled by the #tv.crt-off CSS class.
+*/
+function applyCrt(on) {
+  els.tv.classList.toggle('crt-off', !on);
+  if (els.crtLbl) els.crtLbl.textContent = on ? 'CRT ON' : 'CRT OFF';
+  if (els.crt) els.crt.classList.toggle('off', !on);
+}
+function loadCrt() {
+  let on = true;
+  try { if (localStorage.getItem(CRT_KEY) === '0') on = false; } catch {}
+  applyCrt(on);
+}
+function toggleCrt() {
+  const nowOn = els.tv.classList.contains('crt-off'); // currently off -> turn on
+  applyCrt(nowOn);
+  try { localStorage.setItem(CRT_KEY, nowOn ? '1' : '0'); } catch {}
+  revealOverlays();
 }
 
 function showHud(ch, title) {
@@ -435,6 +464,10 @@ function setupKeys() {
         setOrder();
         showHud(els.ch.textContent, state.shuffle ? '(shuffle on)' : '(shuffle off)');
         break;
+      case 'c': case 'C':
+        toggleCrt();
+        showHud(els.ch.textContent, els.tv.classList.contains('crt-off') ? '(crt off)' : '(crt on)');
+        break;
       case ',': case '<':
         els.video.currentTime = Math.max(0, els.video.currentTime - 5);
         revealOverlays();
@@ -462,10 +495,12 @@ function setupKeys() {
 
 window.__smashtv = state;
 (async function main() {
+  loadCrt();
   setupKeys();
   setupScrub();
   setupTouch();
   els.share.addEventListener('click',   e => { e.stopPropagation(); onShareClick(); });
+  els.crt.addEventListener('click',     e => { e.stopPropagation(); toggleCrt(); });
   els.prevBtn.addEventListener('click', e => { e.stopPropagation(); prev(); });
   els.nextBtn.addEventListener('click', e => { e.stopPropagation(); next(); });
   console.log('[smashtv] booting');
