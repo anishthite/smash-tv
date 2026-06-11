@@ -365,26 +365,41 @@ function setupScrub() {
 
 /* ---------- touch input ----------
    Phones / tablets: swipe horizontally to change channel, tap to toggle play,
-   double-tap to fullscreen. Vertical swipes are ignored (let the OS keep its
-   gestures). The scrub bar handles its own touch events via the existing
-   mouse handlers — we explicitly skip touches that land inside the scrub /
-   HUD chrome so swipes don't fight buttons.
+   double-tap to fullscreen. The scrub bar / HUD have their own controls — we
+   explicitly ignore touches that start inside that chrome so swipes don't
+   fight buttons.
+
+   Why the rules below are loose: real fingers are noisy. The old version
+   required <10px of movement for a tap and >50px for a swipe, leaving a
+   silent dead zone for everything in between — i.e. most real-world taps.
+   We now accept ANY non-swipe, non-vertical-drag, non-long-press touch as a
+   tap, and we fire the action immediately instead of waiting 320ms for a
+   possible double-tap. The double-tap path UNDOES the single-tap action
+   before opening fullscreen, so the gesture still feels right but a normal
+   tap is instant.
 */
 function setupTouch() {
-  const SWIPE_MIN_DX = 50;     // px horizontal to count as a swipe
-  const SWIPE_MAX_DY = 60;     // px vertical tolerance — above this it's a scroll
-  const TAP_MAX_DIST = 10;     // px movement still counts as a tap
-  const TAP_MAX_MS   = 300;
-  const DOUBLE_TAP_MS = 320;
+  const SWIPE_MIN_DX  = 50;    // px horizontal travel to count as a swipe
+  const SWIPE_MAX_DY  = 60;    // px vertical tolerance — above this it's a drag, not a tap
+  const TAP_MAX_MS    = 1000;  // anything slower than this is a long-press, ignore
+  const DOUBLE_TAP_MS = 280;   // second-tap window for fullscreen
 
-  let sx = 0, sy = 0, st = 0, tracking = false, lastTapAt = 0;
-  let singleTapTimer = null;
+  let sx = 0, sy = 0, st = 0, tracking = false;
+  let lastTapAt = 0;
+  // Remember which way the single-tap toggled play/pause so a follow-up
+  // double-tap can undo it before entering fullscreen.
+  let lastTapAction = null; // 'play' | 'pause' | null
 
   const inChrome = (target) => {
-    // Skip the scrub bar and HUD — they have their own controls.
     return !!(target.closest && (target.closest('#scrub') || target.closest('#hud')));
   };
   const bootVisible = () => !els.boot.classList.contains('hidden');
+
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else if (els.video.parentElement.requestFullscreen) els.video.parentElement.requestFullscreen();
+    else if (els.video.webkitEnterFullscreen) els.video.webkitEnterFullscreen(); // iOS
+  };
 
   els.video.parentElement.addEventListener('touchstart', (e) => {
     if (e.touches.length !== 1) { tracking = false; return; }
@@ -406,34 +421,42 @@ function setupTouch() {
     const dy = t.clientY - sy;
     const dt = e.timeStamp - st;
 
-    // Horizontal swipe — change channel.
-    if (Math.abs(dx) > SWIPE_MIN_DX && Math.abs(dy) < SWIPE_MAX_DY) {
-      if (singleTapTimer) { clearTimeout(singleTapTimer); singleTapTimer = null; }
+    // Big vertical drag — almost certainly not a tap. Ignore.
+    if (Math.abs(dy) > SWIPE_MAX_DY) return;
+
+    // Horizontal swipe — change channel. Reset tap state so a swipe followed
+    // quickly by a tap isn't misread as a double-tap.
+    if (Math.abs(dx) > SWIPE_MIN_DX) {
       if (dx < 0) next(); else prev();
+      lastTapAt = 0;
+      lastTapAction = null;
       return;
     }
 
-    // Tap.
-    if (Math.abs(dx) < TAP_MAX_DIST && Math.abs(dy) < TAP_MAX_DIST && dt < TAP_MAX_MS) {
-      const now = e.timeStamp;
-      if (now - lastTapAt < DOUBLE_TAP_MS) {
-        // Double tap — toggle fullscreen.
-        lastTapAt = 0;
-        if (singleTapTimer) { clearTimeout(singleTapTimer); singleTapTimer = null; }
-        if (document.fullscreenElement) document.exitFullscreen();
-        else if (els.video.parentElement.requestFullscreen) els.video.parentElement.requestFullscreen();
-        else if (els.video.webkitEnterFullscreen) els.video.webkitEnterFullscreen(); // iOS
-        return;
-      }
-      lastTapAt = now;
-      // Delay single-tap action so a double-tap can preempt it.
-      singleTapTimer = setTimeout(() => {
-        singleTapTimer = null;
-        if (els.video.paused) els.video.play().catch(() => {});
-        else els.video.pause();
-        revealOverlays();
-      }, DOUBLE_TAP_MS);
+    // Long press — ignore.
+    if (dt > TAP_MAX_MS) return;
+
+    // Tap. Fire IMMEDIATELY so there's no perceived input lag. A second tap
+    // within DOUBLE_TAP_MS undoes this and opens fullscreen instead.
+    const now = e.timeStamp;
+    if (now - lastTapAt < DOUBLE_TAP_MS && lastTapAction) {
+      // Undo the single-tap's play/pause flip, then toggle fullscreen.
+      if (lastTapAction === 'pause') els.video.play().catch(() => {});
+      else els.video.pause();
+      toggleFullscreen();
+      lastTapAt = 0;
+      lastTapAction = null;
+      return;
     }
+    if (els.video.paused) {
+      els.video.play().catch(() => {});
+      lastTapAction = 'play';
+    } else {
+      els.video.pause();
+      lastTapAction = 'pause';
+    }
+    lastTapAt = now;
+    revealOverlays();
   }, { passive: true });
 
   // Any touch should also wake the overlays.
